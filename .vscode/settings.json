@@ -1,0 +1,13 @@
+{
+    "C_Cpp.default.defines": [
+        "DEBUG=1"
+    ],
+    "files.associations": {
+        "*.h": "c",
+        "*.c": "c"
+    },
+    "C_Cpp.default.includePath": [
+        "segger-rtt/RTT",
+        "segger-rtt/Config",
+      ]
+}

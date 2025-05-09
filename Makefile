@@ -86,6 +86,7 @@ flash: $(ELF)
 
 # Run target
 run: $(ELF)
+#	probe-rs run --probe 2e8a:000c --chip STM32F103C8Tx $<
 	probe-rs run --chip STM32F103C8Tx $<
 
 # Clean segger

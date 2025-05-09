@@ -13,7 +13,7 @@
 
 // Select one or the other of HSI (internal oscillator) or HSE (external
 // oscillator)
-#if 1
+#if 0
 #define HSI  1
 #define HSI_TRIM 0x1F
 #define MCO  1
@@ -21,7 +21,7 @@
 #define EXECUTE_FROM_RAM  0
 #endif
 
-#if 0
+#if 1
 #define HSE  1
 #define MCO  1
 #define PLL  9

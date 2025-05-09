@@ -252,8 +252,6 @@ int main(void) {
     setup_mco(RCC_CFGR_MCO_SYSCLK);
 #endif
 
-while(1);
-
 #if HSI == 1
     uint8_t hsi_cal = get_hsi_cal();
     LOG("HSI calibration value: 0x%x", hsi_cal);
@@ -295,15 +293,15 @@ while(1);
 
     // Before we can switch to the PLL we must configure bus prescalers
 
-        // AHB = SYSCLK not divided
-        RCC_CFGR &= ~RCC_CFGR_HPRE_MASK;
+    // AHB = SYSCLK not divided
+    RCC_CFGR &= ~RCC_CFGR_HPRE_MASK;
         
-        // APB1 = HCLK/2 (max 36MHz)
-        RCC_CFGR &= ~RCC_CFGR_PPRE1_MASK;
-        RCC_CFGR |= RCC_CFGR_PPRE1_DIV2;
-        
-        // APB2 = HCLK not divided
-        RCC_CFGR &= ~RCC_CFGR_PPRE2_MASK;
+    // APB1 = HCLK/2 (max 36MHz)
+    RCC_CFGR &= ~RCC_CFGR_PPRE1_MASK;
+    RCC_CFGR |= RCC_CFGR_PPRE1_DIV2;
+       
+    // APB2 = HCLK not divided
+    RCC_CFGR &= ~RCC_CFGR_PPRE2_MASK;
 
     // Set Flash latency to 2 wait states for 64-72MHz.  We need to do this
     // before we switch to the PLL as we're running from flash.
@@ -311,7 +309,10 @@ while(1);
 
     LOG("Set system clock to PLL: %x", RCC_CFGR_SW_PLL);
     set_clock(RCC_CFGR_SW_PLL);
-
+#else // PLL
+#if HSE == 1
+    set_clock(RCC_CFGR_SW_HSE);
+#endif
 #endif // PLL
 
     LOG("Switch MCO to SYSCLK: %x", RCC_CFGR_MCO_SYSCLK);

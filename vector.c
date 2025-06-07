@@ -44,6 +44,26 @@ void (* const g_pfnVectors[])(void) = {
     SysTick_Handler,               // SysTick handler
 
     // Peripheral interrupt handlers follow
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+#ifdef STM32F4
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler, Default_Handler, Default_Handler,
+    Default_Handler, Default_Handler
+#endif // STM32F4
 };
 
 // Variables defined by the linker.

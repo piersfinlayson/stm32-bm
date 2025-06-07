@@ -30,9 +30,11 @@
 #define EXECUTE_FROM_RAM  0
 #endif
 
+// Set by Makefile
 //#define STM32F103  1
 //#define STM32F401  1
 //#define STM32F411  1
+//#define STM32F405  1
 
 #if defined(STM32F401)
 // The values of 8, 200, 4 and 9 lead to the maximum supported 96Mhz SYSCLK and

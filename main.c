@@ -161,7 +161,7 @@ void setup_mco(uint8_t mco) {
 
 #if defined(STM32F4)
 // Sets up MCO1 and and MCO2 on PA8 and PC9 respectively, to the value provided
-void setup_mco(uint8_t mco1, uint8_t mco2) {
+void setup_mco(uint8_t mco1, uint8_t mco1_pre, uint8_t mco2, uint8_t mco2_pre) {
     // Enable GPIOA and GPIOC clocks
     RCC_AHB1ENR |= (1 << 0);  // GPIOA
     RCC_AHB1ENR |= (1 << 2);  // GPIOC
@@ -169,18 +169,20 @@ void setup_mco(uint8_t mco1, uint8_t mco2) {
     // Configure PA8 as output
     uint32_t gpioa_moder = GPIOA_MODER;
     gpioa_moder &= ~(0b11 << (8 * 2));  // Clear bits for PA8
-    gpioa_moder |= (0b01 << (8 * 2));   // Set as output
+    gpioa_moder |= (0b10 << (8 * 2));   // AF mode
     GPIOA_MODER = gpioa_moder;
-    GPIOA_OSPEEDR |= (0b11 << (8 * 2));  // Set speed to very high speed
-    GPIOA_OTYPER &= ~(0b1 << 8);  // Set as push-pull
+    GPIOA_AFRH &= ~(0b1111 << ((8-8) * 4));  // Clear AFRH bits for PA8
+    GPIOA_OSPEEDR |= (0b11 << (8 * 2));  // Very high speed
+    GPIOA_OTYPER &= ~(1 << 8);           // Push-pull
 
     // Configure PC9 as PA8
     uint32_t gpioc_moder = GPIOC_MODER;
     gpioc_moder &= ~(0b11 << (9 * 2));  // Clear bits for PC9
-    gpioc_moder |= (0b01 << (9 * 2));   // Set as output
+    gpioc_moder |= (0b10 << (9 * 2));   // AF mode
     GPIOC_MODER = gpioc_moder;
-    GPIOC_OSPEEDR |= (0b11 << (9 * 2));  // Set speed to very high speed
-    GPIOC_OTYPER &= ~(0b1 << 9);  // Set as push-pull
+    GPIOC_AFRH &= ~(0b1111 << ((9-8) * 4));  // Clear AFRH bits for PC9
+    GPIOC_OSPEEDR |= (0b11 << (9 * 2));  // Very high speed
+    GPIOC_OTYPER &= ~(1 << 9);           // Push-pull
 
     // Set MCO bits in RCC_CFGR
     uint32_t rcc_cfgr = RCC_CFGR;
@@ -188,9 +190,12 @@ void setup_mco(uint8_t mco1, uint8_t mco2) {
     rcc_cfgr |= ((mco1 & 0b11) << 21);  // Set MCO1 bits
     rcc_cfgr &= ~RCC_CFGR_MCO2_MASK;  // Clear MCO2 bits
     rcc_cfgr |= ((mco2 & 0b11) << 30);  // Set MCO2 bits
+    rcc_cfgr &= ~(0b111 << 24);  // Clear MCO1 prescaler bits
+    rcc_cfgr |= ((mco1_pre & 0b111) << 24);  // Set MCO1 prescaler bits
+    rcc_cfgr &= ~(0b111 << 27);  // Clear MCO2 prescaler bits
+    rcc_cfgr |= ((mco2_pre & 0b111) << 27);  // Set MCO2 prescaler bits
     RCC_CFGR = rcc_cfgr;
 }
-
 #endif // STM32F4
 
 #if defined(STM32F1)
@@ -208,7 +213,13 @@ void setup_pll_mul(uint8_t mul) {
 void setup_pll_mul(uint8_t m, uint16_t n, uint8_t p, uint8_t q) {
     // Set PLL multiplier in RCC_PLLCFGR
     uint32_t rcc_pllcfgr = RCC_PLLCFGR;
-    rcc_pllcfgr &= ~RCC_PLLCFGR_RSVD_RO_MASK;  // Clear PLLM bits
+
+    // Clear the actual PLL fields
+    rcc_pllcfgr &= ~(0x3F << 0);        // Clear PLLM (bits 5:0)
+    rcc_pllcfgr &= ~(0x1FF << 6);       // Clear PLLN (bits 14:6)
+    rcc_pllcfgr &= ~(0x3 << 16);        // Clear PLLP (bits 17:16)
+    rcc_pllcfgr &= ~(0xF << 24);        // Clear PLLQ (bits 27:24)
+
     rcc_pllcfgr |= (q & 0b1111) << 24;
     rcc_pllcfgr |= (p & 0b11) << 16;
     rcc_pllcfgr |= (n & 0b111111111) << 6;
@@ -355,7 +366,7 @@ int main(void) {
 #endif // STM32F1
 #if defined(STM32F4)
     LOG("Setup MCO1 on PA8 (HSI) and MCO2 on PC9 (SYSCLK)");
-    setup_mco(RCC_CFGR_MCO1_HSI, RCC_CFGR_MCO2_SYSCLK);
+    setup_mco(RCC_CFGR_MCO1_HSI, 0, RCC_CFGR_MCO2_SYSCLK, 0);
 #endif // STM32F4
 #endif
 
@@ -421,7 +432,7 @@ int main(void) {
 #endif // STM32F1
 #if defined(STM32F4)
     LOG("Switch MCO2 to PLL: %x", RCC_CFGR_MCO2_PLL);
-    setup_mco(RCC_CFGR_MCO1_HSI, RCC_CFGR_MCO2_PLL);
+    setup_mco(RCC_CFGR_MCO1_HSI, 0, RCC_CFGR_MCO2_PLL, 0);
 #endif // STM32F4
 
     //
@@ -441,22 +452,36 @@ int main(void) {
     //
     // Set flash latency and any prefectch buffers/caches
     //
+    uint8_t wait_states;
     uint32_t flash_acr = FLASH_ACR;
     flash_acr &= ~FLASH_ACR_LATENCY_MASK;
 #if defined(STM32F1)
     // Set Flash latency to 2 wait states for 64-72MHz.  We need to do this
     // before we switch to the PLL as we're running from flash.
+    wait_states = 2;
     flash_acr |= FLASH_ACR_LATENCY_2WS | FLASH_ACR_PRFTBE;
 #endif // STM32F1
 #if defined(STM32F4)
-    // Set Flash latency to 2 wait states for > 60Mhz.  Als enable instruction
+    flash_acr |= FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_PRFTEN;
+#if defined(STM32F405)
+    // Set Flash latency to 5 wait states for > 150Mhz.  Als enable instruction
     // and data caches and prefetch buffer.
-    flash_acr |= FLASH_ACR_LATENCY_2WS | FLASH_ACR_ICEN | FLASH_ACR_DCEN | FLASH_ACR_PRFTEN;
+    wait_states = 5;
+#else // !STM32F405
+    // Set Flash latency to 3 wait states for 90-100MHz.  Also enable instruction
+    // and data caches and prefetch buffer.
+    wait_states = 3;
+#endif // STM32F405
 #endif // STM32F4
+    LOG("Set %d wait states", wait_states);
+    flash_acr |= wait_states << 0;
+    LOG("Set flash_acr 0x%08x", FLASH_ACR);
     FLASH_ACR = flash_acr;
 
     // Wait for flash latency to be set
-    while ((FLASH_ACR & FLASH_ACR_LATENCY_MASK) != FLASH_ACR_LATENCY_2WS);
+    while ((FLASH_ACR & FLASH_ACR_LATENCY_MASK) != wait_states) {
+        LOG("FLASH_ACR 0x%08x", FLASH_ACR);
+    }
 
     LOG("Set system clock to PLL: %x", RCC_CFGR_SW_PLL);
     set_clock(RCC_CFGR_SW_PLL);
@@ -466,14 +491,37 @@ int main(void) {
 #endif
 #endif // PLL
 
+if (RCC_CR & (1 << 25)) {
+    LOG("PLL is ready/locked");
+    // PLL is ready/locked
+} else {
+    // PLL not locked - config may not have taken
+    LOG("PLL not locked - config may not have taken");
+}
+
 #if defined(STM3214)
     LOG("Switch MCO to SYSCLK: %x", RCC_CFGR_MCO_SYSCLK);
     setup_mco(RCC_CFGR_MCO_SYSCLK);
 #endif // STM32F1
 #if defined(STM32F4)
-    LOG("Switch MCO1 to PLL, MCO2 to SYSCLK");
-    setup_mco(RCC_CFGR_MCO1_PLL, RCC_CFGR_MCO2_SYSCLK);
+    LOG("Switch MCO1 to PLL/4, MCO2 to SYSCLK/4");
+    setup_mco(RCC_CFGR_MCO1_PLL, RCC_CFGR_MCO_PLL_PRE5, RCC_CFGR_MCO2_SYSCLK, RCC_CFGR_MCO_PLL_PRE5);
 #endif // STM32F4
+
+uint8_t sws = (RCC_CFGR >> 2) & 0x3;
+    LOG("System clock source: %d", sws);  // Should be 2 for PLL
+
+uint32_t cfgr = RCC_CFGR;
+uint8_t mco1_pre = (cfgr >> 24) & 0x7;
+uint8_t mco2_pre = (cfgr >> 27) & 0x7;
+    LOG("MCO1 prescaler: %d, MCO2 prescaler: %d", mco1_pre, mco2_pre);
+
+uint32_t pllcfgr = RCC_PLLCFGR;
+uint8_t pllm = pllcfgr & 0x3F;
+uint16_t plln = (pllcfgr >> 6) & 0x1FF;
+uint8_t pllp = ((pllcfgr >> 16) & 0x3);
+uint8_t pllq = (pllcfgr >> 24) & 0xF; // PLLQ is 4 bits
+    LOG("PLL M: %d, N: %d, P: %d, Q: %d", pllm, plln, pllp, pllq);
 
     LOG("System started");
 

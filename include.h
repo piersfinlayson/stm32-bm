@@ -17,7 +17,7 @@
 // oscillator)
 #if 1
 #define HSI  1
-#define HSI_TRIM 0x1F
+//#define HSI_TRIM 0x1F
 #define MCO  1
 #define PLL  16
 #define EXECUTE_FROM_RAM  0
@@ -41,28 +41,28 @@
 // a 48Mhz USB clock.  This assumes an HSI or HSE of 16Mhz.
 #define PLLM_VAL  16
 #define PLLN_VAL  336
-#define PLLP_VAL  4
+#define PLLP_VAL  0b01 // 4
 #define PLLQ_VAL  7
 #endif // STM32F401
 
 #if defined(STM32F411)
-// The values of 8, 200, 4 and lead to the maximu supported 100Mhz SYSCLK and
+// The values of 8, 200, 4 and lead to the maximum supported 100Mhz SYSCLK and
 // a 44.4Mhz USB clock (which would lead to USB failures).  But we don't care
 // about that.  This assumes an HSI or HSE of 16Mhz.
 #define PLLM_VAL  8
 #define PLLN_VAL  200
-#define PLLP_VAL  4
+#define PLLP_VAL  0b01 // 4
 #define PLLQ_VAL  9
 #endif // STM32F411
 
 #if defined(STM32F405)
-// The values of 8, 200, 4 and lead to the maximu supported 100Mhz SYSCLK and
-// a 44.4Mhz USB clock (which would lead to USB failures).  But we don't care
-// about that.  This assumes an HSI or HSE of 16Mhz.
+// The values of 8, 200, 4 and lead to the maximum supported 168Mhz SYSCLK and
+// a 48Mhz USB clock (which would lead to USB failures).  This assumes an HSI
+// or HSE of 16Mhz.
 #define PLLM_VAL  8
-#define PLLN_VAL  200
-#define PLLP_VAL  4
-#define PLLQ_VAL  9
+#define PLLN_VAL  168
+#define PLLP_VAL  0b00 // 2
+#define PLLQ_VAL  7
 #endif // STM32F405
 
 #if defined(STM32F103)
@@ -372,6 +372,8 @@
 #define RCC_CFGR_MCO2_PLL     0b11
 #define RCC_CFGR_MCO1_HSI     0b00
 #define RCC_CFGR_MCO1_PLL     0b11
+#define RCC_CFGR_MCO_PLL_PRE4 0b110
+#define RCC_CFGR_MCO_PLL_PRE5 0b111
 #endif // STM32F4
 
 // Clock configuration values
@@ -415,7 +417,6 @@
 #endif // STM32F1
 
 // Flash configuration values
-#define FLASH_ACR_LATENCY_2WS   (0x02 << 0) // 2 wait states
 #if defined(STM32F1)
 #define FLASH_ACR_LATENCY_MASK  (0x07 << 0) // Latency mask
 #define FLASH_ACR_PRFTBE        (0x01 << 4) // Prefetch buffer enable

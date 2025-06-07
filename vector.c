@@ -85,26 +85,44 @@ void Default_Handler(void) {
 
 // NMI_Handler - toggles PA0
 void NMI_Handler(void) {
+#if defined(STM32F1)
     // Enable GPIOA clock
     RCC_APB2ENR |= (1 << 2);
     
     // Configure as output (MODE=11, CNF=00)
     GPIOA_CRL &= ~(0xF << 0);  // Clear bits
     GPIOA_CRL |= (0x3 << 0);   // Set as output 50MHz push-pull
+#elif defined(STM32F4)
+    // Enable GPIOA clock
+    RCC_AHB1ENR |= (1 << 0);
+    
+    // Configure as output (MODER = 01)
+    GPIOA_MODER &= ~(0x3 << 0);  // Clear bits
+    GPIOA_MODER |= (0x1 << 0);   // Set as output
+#endif
     
     while(1) {
-        GPIOC_ODR ^= (1 << 0);
+        GPIOA_ODR ^= (1 << 0);  // Fixed: was GPIOC_ODR
     }
 }
 
 // HardFault_Handler - toggles PA1
 void HardFault_Handler(void) {
+#if defined(STM32F1)
     // Enable GPIOA clock
     RCC_APB2ENR |= (1 << 2);
     
     // Configure as output (MODE=11, CNF=00)
     GPIOA_CRL &= ~(0xF << 4);  // Clear bits
     GPIOA_CRL |= (0x3 << 4);   // Set as output 50MHz push-pull
+#elif defined(STM32F4)
+    // Enable GPIOA clock
+    RCC_AHB1ENR |= (1 << 0);
+    
+    // Configure as output (MODER = 01)
+    GPIOA_MODER &= ~(0x3 << 2);  // Clear bits
+    GPIOA_MODER |= (0x1 << 2);   // Set as output
+#endif
     
     while(1) {
         GPIOA_ODR ^= (1 << 1);
@@ -113,12 +131,21 @@ void HardFault_Handler(void) {
 
 // BusFault_Handler - toggles PA2
 void BusFault_Handler(void) {
+#if defined(STM32F1)
     // Enable GPIOA clock
     RCC_APB2ENR |= (1 << 2);
     
     // Configure as output (MODE=11, CNF=00)
     GPIOA_CRL &= ~(0xF << 8);   // Clear bits
     GPIOA_CRL |= (0x3 << 8);    // Set as output 50MHz push-pull
+#elif defined(STM32F4)
+    // Enable GPIOA clock
+    RCC_AHB1ENR |= (1 << 0);
+    
+    // Configure as output (MODER = 01)
+    GPIOA_MODER &= ~(0x3 << 4);  // Clear bits
+    GPIOA_MODER |= (0x1 << 4);   // Set as output
+#endif
     
     while(1) {
         GPIOA_ODR ^= (1 << 2);
@@ -127,12 +154,21 @@ void BusFault_Handler(void) {
 
 // UsageFault_Handler - toggles PA3
 void UsageFault_Handler(void) {
+#if defined(STM32F1)
     // Enable GPIOA clock
     RCC_APB2ENR |= (1 << 2);
     
     // Configure as output (MODE=11, CNF=00)
     GPIOA_CRL &= ~(0xF << 12);  // Clear bits
     GPIOA_CRL |= (0x3 << 12);   // Set as output 50MHz push-pull
+#elif defined(STM32F4)
+    // Enable GPIOA clock
+    RCC_AHB1ENR |= (1 << 0);
+    
+    // Configure as output (MODER = 01)
+    GPIOA_MODER &= ~(0x3 << 6);  // Clear bits
+    GPIOA_MODER |= (0x1 << 6);   // Set as output
+#endif
     
     while(1) {
         GPIOA_ODR ^= (1 << 3);

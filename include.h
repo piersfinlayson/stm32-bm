@@ -32,7 +32,7 @@
 
 //#define STM32F103  1
 //#define STM32F401  1
-#define STM32F411  1
+//#define STM32F411  1
 
 #if defined(STM32F401)
 // The values of 8, 200, 4 and 9 lead to the maximum supported 96Mhz SYSCLK and
@@ -53,6 +53,16 @@
 #define PLLQ_VAL  9
 #endif // STM32F411
 
+#if defined(STM32F405)
+// The values of 8, 200, 4 and lead to the maximu supported 100Mhz SYSCLK and
+// a 44.4Mhz USB clock (which would lead to USB failures).  But we don't care
+// about that.  This assumes an HSI or HSE of 16Mhz.
+#define PLLM_VAL  8
+#define PLLN_VAL  200
+#define PLLP_VAL  4
+#define PLLQ_VAL  9
+#endif // STM32F405
+
 #if defined(STM32F103)
 #define STM32F1  1
 #endif // STM32F103
@@ -64,6 +74,10 @@
 #if defined(STM32F411)
 #define STM32F4  1
 #endif // STM32F411
+
+#if defined(STM32F405)
+#define STM32F4  1
+#endif // STM32F405
 
 #if !defined(HSI)
 #define HSI  0

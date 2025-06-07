@@ -5,4 +5,4 @@ MEMORY
     RAM (rwx)  : ORIGIN = 0x20000000, LENGTH = 20K
 }
 
-INCLUDE stm32f103-common.ld
+INCLUDE stm32-common.ld

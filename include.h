@@ -37,7 +37,7 @@
 //#define STM32F405  1
 
 #if defined(STM32F401)
-// The values of 8, 200, 4 and 9 lead to the maximum supported 96Mhz SYSCLK and
+// The values of 8, 200, 4 and 9 lead to the maximum supported 84Mhz SYSCLK and
 // a 48Mhz USB clock.  This assumes an HSI or HSE of 16Mhz.
 #define PLLM_VAL  16
 #define PLLN_VAL  336
